@@ -1,0 +1,21 @@
+trigger:
+ - master
+
+pool:
+ vmImage: ubuntu-latest
+
+stages:
+ - stage: BuildDockerImage
+   jobs: 
+    job: DockerBuild
+    steps:
+    - task: Docker@2
+      displayName: 'Build Docker Image'
+      inputs:
+          command: 'build'
+          repository: 'nodeJs'
+          Dockerfile: '**/Dockerfile'
+          tags: |
+            $(Build.BuildId)
+            latest
+
