@@ -1,37 +1,17 @@
 trigger:
- - master
+- master
 
 pool:
- vmImage: ubuntu-latest
+  vmImage: ubuntu-latest
 
-stages:
- - stage: BuildDockerImage
-   displayName: Build Docker Image
-   jobs: 
-   - job: DockerBuild
-     steps:
-     - task: Docker@2
-       displayName: 'Build Docker Image'
-       inputs:
-          command: 'build'
-          repository: 'nodeJs'
-          Dockerfile: '**/Dockerfile'
-          tags: |
-            $(Build.BuildId)
-            latest
-
- - stage:
-   displayName: Push Docker Image
-   jobs:
-   - job: DockerPush
-     steps:
-     - task: Docker@2
-       displayName: 'Push Docker Image'
-       inputs:
-          command: 'push'
-          containerRegistry: 'Azure Container Registry'
-          repository: 'Nodejs'
-          tags: |
-            $(Build.BuildId)
-            latest
-        
+steps:
+- task: Docker@2
+  displayName: Build and Push
+  inputs:
+    command: buildAndPush
+    containerRegistry: 'Azure Container Registry'
+    repository: 'nodejs'
+    dockerfile: '**/Dockerfile'
+    tags: |
+      $(Build.BuildId)
+      latest
