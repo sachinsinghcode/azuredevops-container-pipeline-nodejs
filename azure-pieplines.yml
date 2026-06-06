@@ -6,6 +6,7 @@ pool:
 
 stages:
  - stage: BuildDockerImage
+   displayName: Build Docker Image
    jobs: 
    - job: DockerBuild
      steps:
@@ -19,3 +20,18 @@ stages:
             $(Build.BuildId)
             latest
 
+ - stage:
+   displayName: Push Docker Image
+   jobs:
+   - job: DockerPush
+     steps:
+     - tasks: Docker@2
+       displayName: 'Push Docker Image'
+       inputs:
+          command: 'push'
+          containerRegistry: 'Azure'
+          repository: 'Nodejs'
+          tags: |
+            $(Build.BuildId)
+            latest
+        
