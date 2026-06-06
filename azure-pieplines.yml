@@ -7,11 +7,11 @@ pool:
 stages:
  - stage: BuildDockerImage
    jobs: 
-    job: DockerBuild
-    steps:
-    - task: Docker@2
-      displayName: 'Build Docker Image'
-      inputs:
+   - job: DockerBuild
+     steps:
+     - task: Docker@2
+       displayName: 'Build Docker Image'
+       inputs:
           command: 'build'
           repository: 'nodeJs'
           Dockerfile: '**/Dockerfile'
