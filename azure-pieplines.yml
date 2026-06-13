@@ -9,7 +9,7 @@ steps:
   displayName: Build and Push
   inputs:
     command: buildAndPush
-    containerRegistry: 'Azure Container Registry'
+    containerRegistry: 'mainacr'
     repository: 'nodejs'
     dockerfile: '**/Dockerfile'
     tags: |
