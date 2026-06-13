@@ -21,21 +21,26 @@ steps:
       $(imageTag)
       latest
 
-# Install Trivy
-- script: |
-    sudo apt-get update
-    sudo apt-get install -y wget
-    wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.65.0_Linux-64bit.deb
-    sudo dpkg -i trivy_0.65.0_Linux-64bit.deb
-  displayName: Install Trivy
+# # Install Trivy
+# - script: |
+#     sudo apt-get update
+#     sudo apt-get install -y wget
+#     wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.65.0_Linux-64bit.deb
+#     sudo dpkg -i trivy_0.65.0_Linux-64bit.deb
+#   displayName: Install Trivy
 
-# Scan image
+# # Scan image
+# - script: |
+#     trivy image \
+#       --exit-code 1 \
+#       --severity HIGH,CRITICAL \
+#       $(imageRepository):$(imageTag)
+#   displayName: Scan Docker Image
+
 - script: |
-    trivy image \
-      --exit-code 1 \
-      --severity HIGH,CRITICAL \
-      $(imageRepository):$(imageTag)
-  displayName: Scan Docker Image
+    curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sudo sh -s -- -b /usr/local/bin
+    trivy image --exit-code 1 --severity HIGH,CRITICAL nodejs:$(Build.BuildId)
+  displayName: Scan Image
 
 # Push only if scan succeeded
 - task: Docker@2
