@@ -1,17 +1,49 @@
 trigger:
-- master
+- feature/**
 
 pool:
   vmImage: ubuntu-latest
 
+variables:
+  imageRepository: 'nodejs'
+  imageTag: '$(Build.BuildId)'
+
 steps:
+
+# Build only
 - task: Docker@2
-  displayName: Build and Push
+  displayName: Build Docker Image
   inputs:
-    command: buildAndPush
-    containerRegistry: 'mainacr' //Name of the service principal created for your Azure Container Registry in ADO
-    repository: 'nodejs' //repository Name in the ACR, If it doesn't exist the pipeline will create it
-    dockerfile: '**/Dockerfile' // This searches Dockeefile in Repo, We can specifiy exact location as well
-    tags: | // Two versions will be pushed one to the latest and one with build id
-      $(Build.BuildId)
+    command: build
+    repository: '$(imageRepository)'
+    dockerfile: '**/Dockerfile'
+    tags: |
+      $(imageTag)
+      latest
+
+# Install Trivy
+- script: |
+    sudo apt-get update
+    sudo apt-get install -y wget
+    wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.65.0_Linux-64bit.deb
+    sudo dpkg -i trivy_0.65.0_Linux-64bit.deb
+  displayName: Install Trivy
+
+# Scan image
+- script: |
+    trivy image \
+      --exit-code 1 \
+      --severity HIGH,CRITICAL \
+      $(imageRepository):$(imageTag)
+  displayName: Scan Docker Image
+
+# Push only if scan succeeded
+- task: Docker@2
+  displayName: Push Docker Image
+  inputs:
+    command: push
+    containerRegistry: 'testacr'
+    repository: '$(imageRepository)'
+    tags: |
+      $(imageTag)
       latest
