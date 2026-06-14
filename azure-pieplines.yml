@@ -10,40 +10,26 @@
 
   steps:
 
-  # Build only
-  - task: Docker@2
-    displayName: Build Docker Image
-    inputs:
-      command: build
-      repository: '$(imageRepository)'
-      dockerfile: '**/Dockerfile'
-      tags: |
-        $(imageTag)
-        latest
+- task: Docker@2
+  displayName: Build
+  inputs:
+    command: build
+    repository: 'nodejs'
+    dockerfile: '**/Dockerfile'
+    tags: |
+      $(Build.BuildId)
 
-  # Install Trivy
-  - script: |
-      sudo apt-get update
-      sudo apt-get install -y wget
-      wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.65.0_Linux-64bit.deb
-      sudo dpkg -i trivy_0.65.0_Linux-64bit.deb
-    displayName: Install Trivy
+- script: |
+    curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sudo sh -s -- -b /usr/local/bin
+    trivy image --exit-code 1 --severity HIGH,CRITICAL nodejs:$(Build.BuildId)
+  displayName: Scan Image
 
-  # Scan image
-  - script: |
-      trivy image \
-        --exit-code 1 \
-        --severity HIGH,CRITICAL \
-        $(imageRepository):$(imageTag)
-    displayName: Scan Docker Image
-
-  # Push only if scan succeeded
-  - task: Docker@2
-    displayName: Push Docker Image
-    inputs:
-      command: push
-      containerRegistry: 'testacr'
-      repository: '$(imageRepository)'
-      tags: |
-        $(imageTag)
-        latest
+- task: Docker@2
+  displayName: Push
+  inputs:
+    command: push
+    containerRegistry: 'testacr'
+    repository: 'nodejs'
+    tags: |
+      $(Build.BuildId)
+      latest
