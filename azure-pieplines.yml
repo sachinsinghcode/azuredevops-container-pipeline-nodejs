@@ -1,49 +1,49 @@
-trigger:
-- feature/**
+  trigger:
+  - feature/**
 
-pool:
-  vmImage: ubuntu-latest
+  pool:
+    vmImage: ubuntu-latest
 
-variables:
-  imageRepository: 'nodejs'
-  imageTag: '$(Build.BuildId)'
+  variables:
+    imageRepository: 'nodejs'
+    imageTag: '$(Build.BuildId)'
 
-steps:
+  steps:
 
-# Build only
-- task: Docker@2
-  displayName: Build Docker Image
-  inputs:
-    command: build
-    repository: '$(imageRepository)'
-    dockerfile: '**/Dockerfile'
-    tags: |
-      $(imageTag)
-      latest
+  # Build only
+  - task: Docker@2
+    displayName: Build Docker Image
+    inputs:
+      command: build
+      repository: '$(imageRepository)'
+      dockerfile: '**/Dockerfile'
+      tags: |
+        $(imageTag)
+        latest
 
-# Install Trivy
-- script: |
-    sudo apt-get update
-    sudo apt-get install -y wget
-    wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.65.0_Linux-64bit.deb
-    sudo dpkg -i trivy_0.65.0_Linux-64bit.deb
-  displayName: Install Trivy
+  # Install Trivy
+  - script: |
+      sudo apt-get update
+      sudo apt-get install -y wget
+      wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.65.0_Linux-64bit.deb
+      sudo dpkg -i trivy_0.65.0_Linux-64bit.deb
+    displayName: Install Trivy
 
-# Scan image
-- script: |
-    trivy image \
-      --exit-code 1 \
-      --severity HIGH,CRITICAL \
-      $(imageRepository):$(imageTag)
-  displayName: Scan Docker Image
+  # Scan image
+  - script: |
+      trivy image \
+        --exit-code 1 \
+        --severity HIGH,CRITICAL \
+        $(imageRepository):$(imageTag)
+    displayName: Scan Docker Image
 
-# Push only if scan succeeded
-- task: Docker@2
-  displayName: Push Docker Image
-  inputs:
-    command: push
-    containerRegistry: 'testacr'
-    repository: '$(imageRepository)'
-    tags: |
-      $(imageTag)
-      latest
+  # Push only if scan succeeded
+  - task: Docker@2
+    displayName: Push Docker Image
+    inputs:
+      command: push
+      containerRegistry: 'testacr'
+      repository: '$(imageRepository)'
+      tags: |
+        $(imageTag)
+        latest

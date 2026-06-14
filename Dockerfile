@@ -1,10 +1,21 @@
-FROM node:20
+# Build stage
+FROM node:20 AS builder
 
 WORKDIR /app
 
+COPY package*.json ./
+RUN npm ci
+
 COPY . .
 
-RUN npm install
+# Uncomment if needed
+# RUN npm run build
 
-CMD ["npm","start"]
+# Runtime stage
+FROM node:20-slim
 
+WORKDIR /app
+
+COPY --from=builder /app .
+
+CMD ["npm", "start"]
